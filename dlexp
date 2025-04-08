@@ -1,424 +1,374 @@
-//////////// ANN ////////////////
+//////////////////Minumum editt /////////////////////
 
-import numpy as np
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense, Flatten
-from keras.utils import to_categorical
 
-# Load and preprocess data
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
-X_train = X_train / 255.0
-X_test = X_test / 255.0
-y_train = to_categorical(y_train)
-y_test = to_categorical(y_test)
+# Get input from user
+string1 = input("Enter first string: ")
+string2 = input("Enter second string: ")
 
-# Build the model
-model = Sequential()
-model.add(Flatten(input_shape=(28, 28)))
-model.add(Dense(64, activation='relu'))
-model.add(Dense(10, activation='softmax'))
+m = len(string1)
+n = len(string2)
 
-# Compile the model
-model.compile(
-    loss='categorical_crossentropy',
-    optimizer='adam',
-    metrics=['accuracy']
-)
+# Create a matrix for storing results
+dp = [[0 for j in range(n+1)] for i in range(m+1)]
 
-# Train the model
-model.fit(
-    X_train, y_train,
-    epochs=10,
-    validation_data=(X_test, y_test)
-)
+# Fill the matrix
+for i in range(m+1):
+    for j in range(n+1):
+        if i == 0:
+            dp[i][j] = j  # Insert all characters
+        elif j == 0:
+            dp[i][j] = i  # Remove all characters
+        elif string1[i-1] == string2[j-1]:
+            dp[i][j] = dp[i-1][j-1]
+        else:
+            insert = dp[i][j-1]
+            delete = dp[i-1][j]
+            replace = dp[i-1][j-1]
+            dp[i][j] = 1 + min(insert, delete, replace)
 
-# Evaluate the model
-loss, accuracy = model.evaluate(X_test, y_test)
-print(f'Accuracy: {accuracy * 100:.2f}%')
-
-# Predict
-predictions = model.predict(X_test)
-predicted_classes = np.argmax(predictions, axis=1)
-print('Predicted Classes:', predicted_classes)
+# Print final result
+print("Minimum Edit Distance:", dp[m][n])
 
 
 
-/////////////////////////  SPEECH RECOGNITION////////////////
-import tensorflow as tf
-import numpy as np
-from sklearn.model_selection import train_test_split
-from tensorflow.keras.utils import to_categorical
+//////////////////////// Restaurant //////////
 
-# Function to generate dummy data
-def generate_dummy_data(num_samples=1000, input_length=16000, num_classes=10):
-    X = np.random.rand(num_samples, input_length, 1)
-    y = np.random.randint(0, num_classes, num_samples)
-    y = to_categorical(y, num_classes=num_classes)
-    return X, y
-
-# Function to build a 1D CNN model
-def build_cnn_model(input_shape, num_classes):
-    model = tf.keras.Sequential([
-        tf.keras.layers.InputLayer(input_shape=input_shape),
-        tf.keras.layers.Conv1D(32, kernel_size=3, activation='relu'),
-        tf.keras.layers.MaxPooling1D(pool_size=2),
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.Conv1D(64, kernel_size=3, activation='relu'),
-        tf.keras.layers.MaxPooling1D(pool_size=2),
-        tf.keras.layers.BatchNormalization(),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dropout(0.5),
-        tf.keras.layers.Dense(num_classes, activation='softmax')
-    ])
-    return model
-
-# Parameters
-num_samples = 1000
-input_length = 16000
-num_classes = 10
-
-# Generate data
-X, y = generate_dummy_data(num_samples, input_length, num_classes)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-input_shape = (input_length, 1)
-
-# Build and compile the model
-model = build_cnn_model(input_shape=input_shape, num_classes=num_classes)
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-# Train the model
-epochs = 10
-batch_size = 32
-print("Training the model...")
-history = model.fit(X_train, y_train, validation_split=0.2, epochs=epochs, batch_size=batch_size)
-
-# Evaluate the model
-print("Evaluating the model...")
-test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=2)
-print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
-
-# Predict and show results
-print("Making predictions on test data...")
-predictions = model.predict(X_test)
-predicted_classes = np.argmax(predictions, axis=1)
-
-print("First 10 Predictions:")
-print(predicted_classes[:10])
-
-
-////////////////////////AUGMENTATION/////////////
-
-
-import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
-import cv2
-import os
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-# Load and preprocess the image
-img_path = "WI.jpeg"
-img = cv2.imread(img_path)
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-img = cv2.resize(img, (224, 224))
-img_array = np.expand_dims(img, axis=0)  # Add batch dimension
-
-# Set up image data generator for augmentation
-datagen = ImageDataGenerator(
-    rotation_range=30,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
-    shear_range=0.2,
-    zoom_range=0.2,
-    horizontal_flip=True,
-    fill_mode="nearest"
-)
-
-# Generate augmented images
-aug_iter = datagen.flow(img_array, batch_size=1)
-
-# Plot some augmented examples
-plt.figure(figsize=(10, 5))
-for i in range(6):
-    plt.subplot(2, 3, i + 1)
-    batch = next(aug_iter)
-    plt.imshow(batch[0].astype("uint8"))
-    plt.axis("off")
-
-plt.tight_layout()
-plt.show()
-
-////////////////////ACTIVATION FUNCTIONS////////
-
-#import library files
-import tensorflow as tf
-from tensorflow.keras.datasets import mnist
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten, Dropout
-import numpy as np
-# Load the MNIST dataset
-mnist = tf.keras.datasets.mnist
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-# Normalize the datasets
-x_train, x_test = x_train / 255.0, x_test / 255.0
-# Define the model architecture
-model = Sequential([
-    Flatten(input_shape=(28, 28)),
-    Dense(128, activation='sigmoid'),
-    Dropout(0.2),
-    Dense(10, activation='softmax')
-])
-# Compile the model
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
-# Train the model
-model.fit(x_train, y_train, epochs=8) # try incresing the epochs
-
-loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
-print("\nSummary of results:")
-print(f"Loss: {loss}")
-print(f"Accuracy: {accuracy}")
-
-#similarly change the neurons and activation function for the hidden layer and plot a graph for accuracy
-
-import matplotlib.pyplot as plt
-
-
-# putting the results in list
-neuroacti = ["sigmoid 64", "sigmoid 128", "relu 64", "relu 128"]
-acc=[97.68,97.54,97.56,98.44]
-
-# Create a bar graph
-plt.bar(neuroacti, acc)
-
-# Add titles and labels
-plt.title('Accuracy of models')
-plt.xlabel('Models')
-plt.ylabel('Accuracy')
-plt.ylim(97.0, 100.0)
-
-# Display the bar graph
-plt.show()
-
-
-
-  ///////////////XOR/////////////////////
-import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense
-  # XOR input data
-X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-
-# XOR output data
-y = np.array([[0], [1], [1], [0]])
-
-model = Sequential()
-# Input layer with 2 neurons and hidden layer with 2 neurons
-model.add(Dense(6, input_dim=2, activation='relu'))
-# Output layer with 1 neuron
-model.add(Dense(1, activation='sigmoid'))
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-model.fit(X, y, epochs=1000, verbose=0)
-  
-loss, accuracy = model.evaluate(X, y)
-print(f'Accuracy: {accuracy * 100}%')
-
-predictions = model.predict(X)
-predictions_int = [round(pred[0]) for pred in predictions]
-print('Predictions:',predictions_int)
-
-
-  //////////////////////  SSENTIMENT ANALYISIS /////////////////////
-
-https://www.kaggle.com/datasets/abhi8923shriv/sentiment-analysis-dataset?select=train.csv
-
-import pandas as pd
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, LSTM, Dense, Dropout
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-
-# Load dataset
-df = pd.read_csv('your_dataset.csv')  # Change to your actual CSV filename
-
-# Drop rows with missing sentiment or text
-df = df.dropna(subset=['text', 'sentiment'])
-
-# Encode labels
-label_encoder = LabelEncoder()
-df['label'] = label_encoder.fit_transform(df['sentiment'])  # e.g., pos=2, neu=1, neg=0
-
-# Tokenize the text
-tokenizer = Tokenizer(num_words=10000, oov_token='<OOV>')
-tokenizer.fit_on_texts(df['text'])
-sequences = tokenizer.texts_to_sequences(df['text'])
-max_len = 40  # tweet size limit – adjust if needed
-padded = pad_sequences(sequences, maxlen=max_len, padding='post')
-
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(padded, df['label'], test_size=0.2, random_state=42)
-
-# Build model
-model = Sequential([
-    Embedding(input_dim=10000, output_dim=64, input_length=max_len),
-    LSTM(64, dropout=0.2, recurrent_dropout=0.2),
-    Dropout(0.5),
-    Dense(3, activation='softmax')  # 3 classes: positive, neutral, negative
-])
-
-model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-# Train model
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=5, batch_size=32)
-
-# Evaluate
-loss, acc = model.evaluate(X_test, y_test)
-print(f"Test Accuracy: {acc * 100:.2f}%")
-
-# Predict example tweet
-sample = ["I love this new update!"]
-seq = tokenizer.texts_to_sequences(sample)
-padded_seq = pad_sequences(seq, maxlen=max_len, padding='post')
-pred = model.predict(padded_seq)
-predicted_label = label_encoder.inverse_transform([np.argmax(pred)])
-print(f"Predicted sentiment: {predicted_label[0]}")
-
-  OR 
-
-
-
-  import numpy as np
-import pandas as pd
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, LSTM, Dense, Dropout
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-
-# Sample tweet data (replace this with your own dataset)
-data = {
-    'text': [
-        "I love this!", 
-        "This is terrible!", 
-        "What a great day!", 
-        "I hate everything", 
-        "Feeling fantastic", 
-        "This sucks"
-    ],
-    'sentiment': [
-        "positive", 
-        "negative", 
-        "positive", 
-        "negative", 
-        "positive", 
-        "negative"
-    ]
+grammar = {
+    'S': [['NP', 'VP']],
+    'NP': [['Det', 'Nominal'], ['N']],
+    'VP': [['V', 'NP']],
+    'Det': [['A']],
+    'Nominal': [['N']],
+    'N': [['Restaurant'], ['Dosa']],
+    'V': [['Serves']]
 }
-df = pd.DataFrame(data)
 
-# Encode sentiment labels to 0 and 1
-le = LabelEncoder()
-df['label'] = le.fit_transform(df['sentiment'])
-
-# Tokenization
-tokenizer = Tokenizer(num_words=5000, oov_token="<OOV>")
-tokenizer.fit_on_texts(df['text'])
-sequences = tokenizer.texts_to_sequences(df['text'])
-padded_sequences = pad_sequences(sequences, maxlen=20, padding='post')
-
-# Train-test split
-X_train, X_test, y_train, y_test = train_test_split(padded_sequences, df['label'], test_size=0.2, random_state=42)
-
-# Model
-model = Sequential([
-    Embedding(input_dim=5000, output_dim=64, input_length=20),
-    LSTM(64, return_sequences=False),
-    Dropout(0.5),
-    Dense(1, activation='sigmoid')
-])
-
-# Compile
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-# Train
-model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test), batch_size=2)
-
-# Evaluate
-loss, acc = model.evaluate(X_test, y_test)
-print(f"Test Accuracy: {acc * 100:.2f}%")
-
-# Predict on new tweet
-test_tweet = ["I'm not happy with this service"]
-seq = tokenizer.texts_to_sequences(test_tweet)
-padded = pad_sequences(seq, maxlen=20, padding='post')
-pred = model.predict(padded)
-print("Sentiment:", "Positive" if pred[0][0] > 0.5 else "Negative")
+# Tokenized input
+sentence = "A Restaurant Serves Dosa".split()
+index = 0
 
 
-///////////////////TRAFFIC SCENES ////////////////////////////
+# Parse function
+def parse(symbol):
+    global index
+    # Terminal
+    if symbol not in grammar:
+        if index < len(sentence) and sentence[index] == symbol:
+            node = (symbol,)
+            index += 1
+            return node
+        else:
+            return None
+    # Non-terminal
+    for rule in grammar[symbol]:
+        saved_index = index
+        children = []
+        for part in rule:
+            result = parse(part)
+            if result is None:
+                index = saved_index
+                break
+            children.append(result)
+        else:
+            return (symbol, children)
+    return None
+tree = parse('S')
+print(tree)
 
-  
-#CNN-6
-!pip install -q tensorflow
-import tensorflow as tf
-from tensorflow.keras import layers, models
-from tensorflow.keras.datasets import cifar10
-import matplotlib.pyplot as plt
-import numpy as np
-(x_train, y_train), (x_test, y_test) = cifar10.load_data()
-x_train = x_train / 255.0
-x_test = x_test / 255.0
-class_names = ['airplane','automobile','bird','cat','deer',
-               'dog','frog','horse','ship','truck']
-model = models.Sequential([
-    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)),
-    layers.MaxPooling2D(2, 2),
-    layers.Conv2D(64, (3, 3), activation='relu'),
-    layers.MaxPooling2D(2, 2),
-    layers.Flatten(),
-    layers.Dense(64, activation='relu'),
-    layers.Dense(10, activation='softmax')
-])
+/////////////Parse TRee generator ////////////
+# Define the grammar rules properly
+grammar = {
+    'S': [['NP', 'VP']],
+    'NP': [['Det', 'Nom']],
+    'VP': [['V', 'NP']],
+    'Nom': [['Adj', 'Nom'], ['N']],
+    'Det': [['the']],
+    'Adj': [['little'], ['angry'], ['frightened']],
+    'N': [['squirrel'], ['bear']],
+    'V': [['chased']]
+}
 
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
-model.summary()
-history = model.fit(x_train, y_train, epochs=10,
-                    validation_data=(x_test, y_test))
-plt.plot(history.history['accuracy'], label='Training Accuracy')
-plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.legend()
-plt.show()
-predictions = model.predict(x_test)
-for i in range(5):
-    plt.imshow(x_test[i])
-    plt.title(f"True: {class_names[int(y_test[i])]}, Predicted: {class_names[np.argmax(predictions[i])]}")
-    plt.show()
-
-
-
+# Tokenized input sentence
+sentence = "the angry bear chased the frightened little squirrel".split()
+index = 0  # Global index to track the current word
 
 
+# Recursive parse function
+def parse(symbol):
+    global index
+    # Terminal
+    if symbol not in grammar:
+        if index < len(sentence) and sentence[index] == symbol:
+            node = (symbol,)
+            index += 1
+            return node
+        else:
+            return None
+    # Non-terminal
+    for rule in grammar[symbol]:
+        saved_index = index
+        children = []
+        for part in rule:
+            result = parse(part)
+            if result is None:
+                index = saved_index
+                break
+            children.append(result)
+        else:
+            return (symbol, children)
+    return None
+
+
+# Helper to print parse tree
+def print_tree(node, indent=0):
+    if isinstance(node, tuple):
+        if len(node) == 1:
+            print('  ' * indent + node[0])
+        else:
+            print('  ' * indent + node[0])
+            for child in node[1]:
+                print_tree(child, indent + 1)
+
+
+# Start parsing from 'S'
+tree = parse('S')
+
+if tree and index == len(sentence):
+    print("✅ Parse successful! Here's the parse tree:\n")
+    print_tree(tree)
+else:
+    print("❌ Failed to parse the sentence.")
+
+
+
+//////////////////////////Regex///////////////////////////////////
+import re
+
+# Sample text with 3 emails and 2 phone numbers
+text = '''Contact us at sunil123@gmail.com or support@domain.org for queries. 
+You can also reach ankit.k@xyz.in. Call 9876543210 or 9123456789 for urgent help.'''
+
+# 1. Extract all email IDs
+emails = re.findall(r'\b[\w.-]+@[\w.-]+\.\w+\b', text)
+print("Email IDs:", emails)
+
+# 2. Extract all mobile numbers (Assuming 10-digit Indian numbers)
+mobiles = re.findall(r'\b[6-9]\d{9}\b', text)
+print("Mobile Numbers:", mobiles)
+
+# 3. Extract names matching pattern: 'S u _ _ _'
+names = ['Sunil', 'Shyam', 'Ankit', 'Surjeet', 'Sumit', 'Subhi', 'Surbhi', 'Siddharth', 'Sujan']
+pattern_names = [name for name in names if re.fullmatch(r'Su\w{3}', name)]
+print("Names matching 'Su___':", pattern_names)
+
+# 4. Use of re.search()
+result = re.search(r'\d{10}', text)
+print("First phone found (search):", result.group() if result else "Not found")
+
+# 5. Use of re.match()
+m = re.match(r'Contact', text)
+print("Match at start (match):", m.group() if m else "Not matched")
+
+# 6. Use of re.sub()
+clean_text = re.sub(r'\d{10}', 'XXXXXXXXXX', text)
+print("Text after replacing numbers:", clean_text)
+
+# 7. Use of re.compile()
+pattern = re.compile(r'\b[\w.-]+@[\w.-]+\.\w+\b')
+compiled_emails = pattern.findall(text)
+print("Emails using re.compile():", compiled_emails)
+
+# 8. Match 'ab' followed by zero or more 'c'
+test1 = ['ab', 'abc', 'abcc', 'ac', 'a', 'abb']
+for word in test1:
+    if re.fullmatch(r'abc*', word):
+        print("ab followed by 0 or more c:", word)
+
+# 9. Match 'a' followed by zero or more 'bc'
+test2 = ['a', 'abc', 'abcbc', 'abcbcbc', 'ab', 'abbc']
+for word in test2:
+    if re.fullmatch(r'a(bc)*', word):
+        print("a followed by 0 or more bc:", word)
+
+# 10. Match 'ab' followed by zero or one 'c'
+test3 = ['ab', 'abc', 'abcc', 'ac', 'abb']
+for word in test3:
+    if re.fullmatch(r'abc?', word):
+        print("ab followed by 0 or 1 c:", word)
+
+
+////////////////////////////////Trigram////////////
+
+
+# Corpus
+corpus = [
+    "<s> I am Henry </s>",
+    "<s> I like college </s>",
+    "<s> Do Henry like college </s>",
+    "<s> Henry I am </s>",
+    "<s> Do I like Henry </s>",
+    "<s> Do I like college </s>",
+    "<s> I do like Henry </s>"
+]
+
+# Function to build trigram model
+def build_trigram_model(corpus):
+    trigram_counts = {}
+
+    for sentence in corpus:
+        tokens = sentence.split()
+        for i in range(len(tokens) - 2):
+            w1, w2, w3 = tokens[i], tokens[i+1], tokens[i+2]
+            key = (w1, w2)
+            if key not in trigram_counts:
+                trigram_counts[key] = {}
+            if w3 not in trigram_counts[key]:
+                trigram_counts[key][w3] = 0
+            trigram_counts[key][w3] += 1
+
+    return trigram_counts
+
+# Build trigram frequency
+trigram_model = build_trigram_model(corpus)
+
+# Given context
+context = ("Do", "I", "like")
+bigram = (context[1], context[2])
+
+# Predict next word
+if bigram in trigram_model:
+    next_word = max(trigram_model[bigram], key=trigram_model[bigram].get)
+    print(f"Most probable next word : {next_word}")
+else:
+    print("No match found.")
+
+///////////////////////////summarize////////////////////////////
+text = '''Artificial Intelligence is changing the world. 
+It is used in healthcare to detect diseases. 
+AI is used in education to personalize learning. 
+It helps in self-driving cars. 
+Many industries use AI for automation. 
+In banking, AI detects frauds. 
+AI chatbots improve customer service. 
+Entertainment apps use AI for recommendations. 
+AI is useful in agriculture and weather prediction. 
+Still, AI raises ethical concerns.'''
+
+sentences = text.split('. ')
+freq = {}
+for s in sentences:
+    for w in s.lower().replace('.', '').replace(',', '').split():
+        freq[w] = freq.get(w, 0) + 1
+scores = []
+for s in sentences:
+    score = sum(freq.get(w, 0) for w in s.lower().split())
+    scores.append((score, s))
+top = sorted(scores, reverse=True)[:3]
+for _, s in top:
+    print(s.strip() + '.')
+
+/////////////////////////pos tagging /////////
+# 1. Lexicon (expandable)
+lexicon = {
+    "i": "PRON", "we": "PRON", "you": "PRON", "he": "PRON", "she": "PRON", "they": "PRON", "us": "PRON", "your": "PRON",
+    "need": "VERB", "permit": "VERB", "like": "VERB", "address": "VERB", "am": "AUX", "would": "MODAL", "is": "AUX",
+    "to": "PART", "from": "PREP", "on": "PREP", "in": "PREP", "of": "PREP", "this": "DET", "a": "DET", "the": "DET",
+    "flight": "NOUN", "public": "NOUN", "issue": "NOUN", "everything": "PRON", "shipping": "ADJ", "atlanta": "PROPN"
+}
+
+# 2. Suffix-based rules
+def suffix_rules(word):
+    if word.endswith("ing"):
+        return "VERB"
+    elif word.endswith("ed"):
+        return "VERB"
+    elif word.endswith("ly"):
+        return "ADV"
+    elif word.endswith("ous") or word.endswith("ful"):
+        return "ADJ"
+    elif word.endswith("ion") or word.endswith("ment"):
+        return "NOUN"
+    return None
+
+# 3. Capitalization-based heuristic
+def capital_rule(word, position):
+    if word[0].isupper() and position != 0:
+        return "PROPN"  # Proper noun (not sentence start)
+    return None
+
+# 4. Master tagging function
+def tag_word(word, position):
+    word_lower = word.lower()
+    # 1. Try lexicon
+    if word_lower in lexicon:
+        return lexicon[word_lower]
+    # 2. Try suffix rule
+    suffix_guess = suffix_rules(word_lower)
+    if suffix_guess:
+        return suffix_guess
+    # 3. Capitalization
+    cap_guess = capital_rule(word, position)
+    if cap_guess:
+        return cap_guess
+    # 4. Fallback
+    return "NOUN"
+
+# 5. POS tagger function
+def pos_tag(sentence):
+    tokens = sentence.replace('.', '').split()
+    tags = []
+    for i, word in enumerate(tokens):
+        tag = tag_word(word, i)
+        tags.append((word, tag))
+    return tags
+
+# 6. Test sentences
+sentences = [
+    "I need a flight from Atlanta.",
+    "Everything to permit us.",
+    "I would like to address the public on this issue.",
+    "We need your shipping address."
+]
+
+# 7. Display results
+for i, sent in enumerate(sentences, 1):
+    print(f"\nSentence {i}: {sent}")
+    for word, tag in pos_tag(sent):
+        print(f"{word:15} → {tag}")
 
 
 
 
+////////////////stemming & lemmatiz ////////
 
 
 
+# Simple Rule-Based Stemmer
+def stem(word):
+    suffixes = ['ing', 'ly', 'ed', 'ious', 'ies', 'ive', 'es', 's', 'ment']
+    for suffix in suffixes:
+        if word.endswith(suffix):
+            return word[: -len(suffix)]
+    return word
 
+# Simple Dictionary-Based Lemmatizer
+def lemmatize(word):
+    lemma_dict = {
+        'programming': 'program',
+        'loving': 'love',
+        'lovely': 'love',
+        'kind': 'kind'  # already base form
+    }
+    return lemma_dict.get(word.lower(), word)
 
+# Test Words
+words = ['Programming', 'Loving', 'Lovely', 'Kind']
 
-  
+# Output
+print("Word\t\tStem\t\tLemma")
+print("-" * 40)
+for w in words:
+    original = w
+    stemmed = stem(w.lower())
+    lemmatized = lemmatize(w)
+    print(f"{original:<12}{stemmed:<12}{lemmatized}")
